@@ -1,5 +1,5 @@
 {% extends "base.html" %}{% block content %}
-<p class="eyebrow">PKBM Ristek Nusantara Jaya</p><h1>Buku nilai saya</h1>
+<p class="eyebrow">Rapor Digital</p><h1>Buku nilai saya</h1>
 <form class="year"><label>Tahun awal pelajaran<input type="number" min="2000" max="2100" name="year" value="{{ year }}" required></label><button>Tampilkan</button></form>
 <h2>Program kesetaraan <small>{{ year }}/{{ year+1 }}</small></h2>
 <div class="grid">{% for code,name in programs.items() %}<a class="book" href="{{ url_for('editor',program=code,year=year) }}"><small>{{ {'a':'Setara SD · Kelas I–VI','b':'Setara SMP · Kelas VII–IX','c-ipa':'Setara SMA · Kelas X–XII','c-ips':'Setara SMA · Kelas X–XII'}[code] }}</small><h3>{{ name }}</h3><span>{{ 'Lanjutkan pengisian' if code in revisions else 'Mulai buku nilai' }} →</span></a>{% endfor %}</div>

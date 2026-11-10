@@ -2,6 +2,8 @@
 
 Buku nilai guru untuk program kesetaraan Paket A, B, C IPA, dan C IPS. Antarmuka berbahasa Indonesia mendukung penempelan blok dari Excel, pengisian identitas dan nilai per semester, serta cetak rapor A4 per siswa atau per kelas. Setiap akun memiliki buku sendiri untuk setiap program dan tahun pelajaran.
 
+Aplikasi ini berdiri sendiri dan berjalan di satu komputer. Setiap satuan pendidikan dapat memakainya apa adanya atau menjadikannya titik awal: isi nama dan identitas satuan pendidikan pada **Pengaturan**, lalu sesuaikan daftar mata pelajaran.
+
 ## Menjalankan di komputer guru
 
 Siapkan Python 3.11+ dan jalankan perintah berikut dari direktori proyek. Contoh menggunakan PowerShell.
@@ -38,4 +40,4 @@ Data dari versi HTML lama tetap berada di penyimpanan browser asal. Gunakan sumb
 - Isi buku dan arsip dienkripsi dengan konteks akun, program, tahun dan revisi. Basis data juga berisi metadata seperti nama akun dan nomor arsip. Pengelola yang menguasai host serta kuncinya merupakan pihak tepercaya. Pemulihan basis data lama dapat mengembalikan seluruh aplikasi ke keadaan sebelumnya.
 - Hentikan layanan sebelum menyalin basis data untuk cadangan. Simpan salinan kunci terpisah dari cadangan basis data dengan akses terbatas. Pulihkan keduanya ke direktori privat dan uji pembukaan buku serta arsip. Kehilangan kunci menghilangkan akses ke isi rapor.
 - Tidak ada pendaftaran publik. Sesi disimpan di server, kedaluwarsa setelah 30 menit tanpa permintaan atau delapan jam sejak masuk. Gunakan **Keluar** dan kunci layar saat meninggalkan perangkat. Hasil cetak dan PDF mengandung data siswa dan harus disimpan secara privat.
-- Perintah `python app.py` mengikat layanan ke loopback. Untuk hosting multi-pengguna, gunakan WSGI dengan `create_app()` di belakang terminasi HTTPS yang tepercaya, konfigurasikan skema HTTPS pada WSGI dan batasi akses langsung ke backend. Mode ini mewajibkan HTTPS dan cookie Secure. Jangan publikasikan folder proyek melalui static hosting. Integrasi Portal dan tanda tangan digital PDF berada di luar versi ini.
+- Perintah `python app.py` mengikat layanan ke loopback. Untuk hosting multi-pengguna, gunakan WSGI dengan `create_app()` di belakang terminasi HTTPS yang tepercaya, konfigurasikan skema HTTPS pada WSGI dan batasi akses langsung ke backend. Mode ini mewajibkan HTTPS dan cookie Secure. Jangan publikasikan folder proyek melalui static hosting. Masuk tunggal dan tanda tangan digital PDF berada di luar versi ini.

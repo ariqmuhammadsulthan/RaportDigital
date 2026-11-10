@@ -83,7 +83,7 @@ const mkc = (kl) => {
 const def = () => ({
   logo: "",
   sch: {
-    nama: "PKBM RISTEK NUSANTARA JAYA",
+    nama: "",
     npsn: "",
     a1: "",
     a2: "",
