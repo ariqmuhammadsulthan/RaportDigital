@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Masuk · Rapor Digital{% endblock %}{% block content %}
+<section class="login"><p class="eyebrow">PKBM Ristek Nusantara Jaya</p><h1>Ruang guru</h1><p>Masuk untuk mengisi buku nilai dan menerbitkan rapor peserta didik.</p>
+<form method="post">{% if error %}<p role="alert">{{ error }}</p>{% endif %}
+<label>Nama akun<input name="name" autocomplete="username" required autofocus maxlength="64"></label>
+<label>Kata sandi<input name="password" type="password" autocomplete="current-password" required maxlength="256"></label>
+<button class="primary">Masuk ke buku nilai →</button></form></section>{% endblock %}

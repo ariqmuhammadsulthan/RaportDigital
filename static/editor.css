@@ -1,0 +1,93 @@
+.top,
+.savebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 12px 0;
+}
+.top a {
+  color: inherit;
+}
+.wrap h1 {
+  font:
+    normal 32px Georgia,
+    serif;
+  margin: 20px 0 12px;
+}
+h1 small {
+  font: normal 18px system-ui;
+}
+.savebar {
+  background: #edf3ec;
+  color: #224c39;
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+.savebar.problem {
+  background: #fff0db;
+  color: #703617;
+}
+#loading {
+  padding: 1rem;
+}
+.gw {
+  max-height: 65vh;
+}
+.gt th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--card);
+}
+.pg {
+  position: relative;
+}
+.pg::after {
+  content: attr(data-stamp);
+  position: absolute;
+  bottom: 3mm;
+  right: 8mm;
+  color: #555;
+  font: 8pt sans-serif;
+}
+.pb {
+  cursor: pointer;
+}
+@media print {
+  #loading,
+  .top,
+  .savebar {
+    display: none !important;
+  }
+}
+.filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.filter select {
+  width: auto;
+}
+.gt td:nth-child(2),
+.gt th:nth-child(2) {
+  position: sticky;
+  left: 0;
+  background: var(--card);
+  box-shadow: 1px 0 var(--bd);
+}
+.gt th:nth-child(2) {
+  top: 0;
+  z-index: 3;
+}
+.gt td:nth-child(2) {
+  z-index: 1;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 1px;
+}
