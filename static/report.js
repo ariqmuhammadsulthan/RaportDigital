@@ -37,28 +37,21 @@ const U = senior
     ]
   : [
       "Pendidikan Agama dan Budi Pekerti",
-      "Pendidikan Pancasila dan Kewarganegaraan",
+      "Pendidikan Kewarganegaraan",
       "Bahasa Indonesia",
       "Matematika",
-      "Ilmu Pengetahuan Alam (IPA)",
-      "Ilmu Pengetahuan Sosial (IPS)",
+      ...(program === "a" ? ["IPAS"] : ["IPA", "IPS"]),
+      "Bahasa Inggris",
     ];
-if (program === "b") U.push("Bahasa Inggris");
 const PM = {
-  IPA: ["Matematika MIA", "Biologi", "Fisika", "Kimia"],
+  IPA: ["Matematika Peminatan", "Fisika", "Kimia", "Biologi"],
   IPS: ["Geografi", "Sejarah", "Sosiologi", "Ekonomi"],
 };
-const K = senior
-  ? [
-      "Public Speaking",
-      "Keterampilan Wajib ( SBK, PJOK, Prakarya & Kewirausahaan)",
-      "Teknologi Informasi dan Komunikasi",
-    ]
-  : [
-      "Mancakrida & Kunjungan Museum (Outbond-Outing Class)",
-      "Keterampilan Wajib ( SBK, PJOK, Prakarya)",
-      "Keterampilan Pilihan ( Olah kata (Word Processing), Hantaran)",
-    ];
+const K = [
+  "Public Speaking (Pemberdayaan)",
+  "Keterampilan Wajib (SBK, PJOK, Prakarya & Kewirausahaan)",
+  "Teknologi Informasi dan Komunikasi",
+];
 const grp = (a, kk) => [
   ...a.map((n) => mk(n, 0, kk)),
   mk("", 1, kk),
@@ -156,7 +149,7 @@ function setup() {
     (S.logo
       ? `<div class="row"><img src="${esc(S.logo)}" style="height:60px;background:#fff;border-radius:6px"><button data-action="remove-logo">Hapus logo</button></div>`
       : "");
-  h += `<h3>Kelas ${c.kelas} ${track} (semua semester)</h3><div class="g">${I("w", "wali", "Wali kelas", d.wali)}${I("w", "nip", "NIP wali kelas", d.nip)}</div><label>Teks kenaikan kelas (tercetak di semester Genap; kosongkan jika tidak perlu)<textarea rows="2" data-w="naik">${esc(d.naik)}</textarea></label>`;
+  h += `<h3>Kelas ${c.kelas} ${track} (semua semester)</h3><div class="g">${I("w", "wali", "Wali kelas", d.wali)}${I("w", "nip", "NIP wali kelas", d.nip)}</div>${d.naik ? '<p>Teks kelas dari buku lama (arsip lama): '+esc(d.naik)+'</p>' : ''}`;
   h += `<h3>Kelas ${c.kelas} · Semester ${c.sem}</h3><div class="g">${I("x", "tgl", "Tanggal rapor, mis. 21 Desember 2026", m.tgl)}${I("x", "batas", "Batas nilai deskripsi tinggi", m.batas, "number")}</div>`;
   h +=
     '<p class="mu">Baris berlatar abu-abu adalah kolom cadangan: kosongkan nama mapelnya dan baris itu tidak tercetak. Baris cadangan yang sudah diberi nama hanya tercetak untuk siswa yang punya nilainya.</p>';
@@ -185,6 +178,13 @@ function setup() {
 }
 function cpm() {
   const o = S.sch.sem == "Ganjil" ? "Genap" : "Ganjil";
+  const target = D().ms[o];
+  for (const key of ["u", "p", "k", "e"]) {
+    const changed = target[key].some((entry, i) =>
+      entry.n !== M()[key][i]?.n && D().st.some(student => student.n?.[o]?.[key + i])
+    );
+    if (changed) return alert("Penyalinan akan mengubah nama mapel atau kegiatan yang sudah memiliki nilai di semester " + o + ".");
+  }
   if (
     confirm("Timpa pengaturan semester " + o + " kelas " + S.sch.kelas + "?")
   ) {
@@ -306,6 +306,7 @@ const allColumns = () => [
   })),
   ...allM().map((r) => ({
     h: r.n,
+    score: true,
     w: "v",
     g: (s) => ns(s)[markKey(r)] || "",
     s: (s, v) => sn(s, markKey(r), num(v)),
@@ -410,7 +411,22 @@ document.addEventListener("paste", (e) => {
     r0 = +d.r,
     c0 = +d.c,
     L = D().st;
-  if (R.length > 1 && nz(R[0][0]) == nz(C[c0].h)) R.shift();
+  if (R.length > 1001) return alert("Batas 1.000 siswa per kelas.");
+  const width = R.reduce((max, row) => Math.max(max, row.length), 0);
+  const targets = C.slice(c0, c0 + width);
+  if (targets.length !== width) return alert("Kolom yang ditempel melebihi tabel.");
+  const headers = R[0].map(nz);
+  const hasHeader = R.length > 1 && headers.some(h => C.some(c => nz(c.h) === h));
+  if (hasHeader) {
+    if (headers.length !== width || headers.some((h,i) => h !== nz(targets[i].h)))
+      return alert("Urutan judul kolom berbeda. Sesuaikan dengan tabel sebelum menempel.");
+    R.shift();
+  } else if (width > 1 && targets.some(c => c.score)) {
+    if (!confirm("Tempel nilai tanpa judul sesuai urutan ini?\n" + targets.map(c => c.h).join(" → "))) return;
+  }
+  if (R.some(row => row.some((cell,i) => targets[i].score && cell.trim() &&
+      (!/^\d+(?:[.,]\d+)?$/.test(cell.trim()) || Number(num(cell.trim())) > 100))))
+    return alert("Nilai tidak valid. Periksa judul kolom dan rentang 0–100.");
   if (r0 + R.length > 1000) {
     alert("Batas 1.000 siswa per kelas.");
     return;
@@ -430,9 +446,10 @@ document.addEventListener("paste", (e) => {
 const nv = (s, r) => ns(s)[markKey(r)] || "";
 const wm = () => (S.logo ? `<img class="wm" src="${esc(S.logo)}">` : "");
 const v = (x) => esc(x || "-");
+const legacyPrint = () => Number(document.body.dataset.issue) > 0 && S.reportVersion !== 2;
 const cov = (s, i) => {
   const c = S.sch;
-  return `<div class="pg cv"><div class="nr"><table><tr><th class="y">No Rapor</th><th>Nomor Pokok Sekolah Nasional</th></tr><tr><td>${v(s.norap || i + 1)}</td><td>${v(c.npsn)}</td></tr></table></div>${S.logo ? `<img class="lg" src="${esc(S.logo)}">` : '<div class="lg0">Logo PKBM<br>(unggah di tab Pengaturan)</div>'}<div class="ttl">LAPORAN HASIL BELAJAR PESERTA DIDIK<br>PROGRAM ${program === "a" ? "PAKET A SETARA SD" : program === "b" ? "PAKET B SETARA SMP" : "PAKET C SETARA SMA"}</div><div class="lb">NAMA PESERTA DIDIK</div><div class="pc nm">${esc(s.nama)}</div><div class="lb" style="margin-top:3mm">NIPD / NISN</div><div class="pc ni">${v(s.nipd)} / ${v(s.nisn)}</div><div class="sc"><div class="sn">${esc(c.nama)}</div><div class="dl">NPSN ${esc(c.npsn)}</div><div class="dl">${esc(c.a1.toUpperCase())}</div><div class="dl">${esc(c.a2.toUpperCase())}</div><div class="dl">${esc(c.a3.toUpperCase())}</div></div></div>`;
+  return `<div class="pg cv"><div class="nr"><table><tr><th class="y">No Rapor</th><th>Nomor Pokok Sekolah Nasional</th></tr><tr><td>${v(s.norap || (legacyPrint() ? i + 1 : ""))}</td><td>${v(c.npsn)}</td></tr></table></div>${S.logo ? `<img class="lg" src="${esc(S.logo)}">` : '<div class="lg0">Logo PKBM<br>(unggah di tab Pengaturan)</div>'}<div class="ttl">LAPORAN HASIL BELAJAR PESERTA DIDIK<br>PROGRAM ${program === "a" ? "PAKET A SETARA SD" : program === "b" ? "PAKET B SETARA SMP" : "PAKET C SETARA SMA"}</div><div class="lb">NAMA PESERTA DIDIK</div><div class="pc nm">${esc(s.nama)}</div><div class="lb" style="margin-top:3mm">NIPD / NISN</div><div class="pc ni">${v(s.nipd)} / ${v(s.nisn)}</div><div class="sc"><div class="sn">${esc(c.nama)}</div><div class="dl">NPSN ${esc(c.npsn)}</div><div class="dl">${esc(c.a1.toUpperCase())}</div><div class="dl">${esc(c.a2.toUpperCase())}</div><div class="dl">${esc(c.a3.toUpperCase())}</div></div></div>`;
 };
 const sek = () => {
   const c = S.sch,
@@ -516,8 +533,8 @@ const rap = (s) => {
         `<tr><td>${i + 1}</td><td>${a}</td><td>:</td><td style="text-align:center">${esc(x || "-")}</td><td>hari</td></tr>`,
     )
     .join("")}</table>`;
-  const nk =
-    d.naik && c.sem == "Genap" ? `<div class="nk">${esc(d.naik)}</div>` : "";
+  const decision = legacyPrint() ? d.naik : s.decision;
+  const nk = decision && c.sem === "Genap" ? `<div class="nk">${esc(decision)}</div>` : "";
   const tg = senior
     ? c.kelas === "XII"
       ? 6

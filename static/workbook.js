@@ -21,16 +21,17 @@ async function post(payload) {
     },
     body: JSON.stringify(payload),
   });
-  if (!response.ok)
-    throw new Error(
+  if (!response.ok) {
+    const detail = await response.json().catch(() => ({}));
+    throw new Error(detail.error || (
       {
         401: "Sesi berakhir. Masuk kembali untuk melanjutkan.",
         403: "Sesi telah berubah. Buka ulang buku melalui ruang guru.",
         409: "Buku berubah di tab lain. Salin perubahan Anda sebelum memuat ulang.",
         413: "Buku melebihi batas 4 MB. Kurangi ukuran logo atau jumlah data.",
         422: "Periksa data. Nilai dan KKM harus 0–100, jumlah absen bilangan bulat, dan nama mapel harus unik.",
-      }[response.status] || "Server tidak dapat menyimpan perubahan.",
-    );
+      }[response.status] || "Server tidak dapat menyimpan perubahan."));
+  }
   return response.json();
 }
 
@@ -109,6 +110,7 @@ function review() {
   });
   $("details").hidden = issuedId || list.childElementCount === 0;
   $("issue").disabled = !!gaps.length;
+  showRecap();
   stamp();
 }
 
@@ -204,6 +206,8 @@ async function openBook() {
       .map((o) => opt(o, S.sch.sem))
       .join("");
     if (issuedId) {
+      $("historyBox").hidden = true;
+      $("recapBox").hidden = true;
       $("classes").hidden = true;
       document.querySelector(".tabs").hidden = true;
       $("issue").hidden = true;
@@ -238,3 +242,76 @@ $("leave").addEventListener("submit", async (event) => {
     $("work").inert = false;
   }
 });
+
+function showRecap() {
+  if (issuedId) return;
+  const genap = S.sch.sem === "Genap";
+  $("decisionHead").hidden = !genap;
+  $("rollover").hidden = !genap || year >= 2100;
+  const subjects = allM();
+  $("recap").replaceChildren();
+  for (const student of LS()) {
+    const scores = subjects.map(r => nv(student,r)).filter(v => v !== "");
+    const average = scores.length && scores.every(v => Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 100)
+      ? scores.reduce((sum,v) => sum+Number(v),0)/scores.length : null;
+    const row = $("recap").insertRow();
+    for (const value of [student.nama, scores.length, average === null ? "—" : average.toLocaleString("id-ID",{maximumFractionDigits:2})])
+      row.insertCell().textContent = value;
+    if (!genap) continue;
+    const select = document.createElement("select");
+    select.setAttribute("aria-label","Keputusan untuk " + student.nama);
+    for (const option of ["","Tinggal kelas", S.sch.kelas === KL.at(-1) ? "Lulus" : "Naik kelas"])
+      select.add(new Option(option || "Belum diputuskan",option));
+    select.value = student.decision || "";
+    select.addEventListener("change", () => {
+      student.decision = select.value;
+      save(); draw(); stamp();
+    });
+    row.insertCell().append(select);
+  }
+}
+
+async function bookAction(run) {
+  $("work").inert = true;
+  try {
+    if ((!dirty && !pending) || await flush()) await run();
+  } catch (error) {
+    statusMessage(error.message,true);
+  } finally {
+    $("work").inert = false;
+  }
+}
+
+$("rollover").onclick = () => {
+  const preview = [];
+  let continuing = 0;
+  for (const grade of KL) {
+    const students = S.c[grade].st;
+    if (!students.length) continue;
+    if (students.some(s => !s.nama?.trim() || !s.decision))
+      return alert("Lengkapi nama dan keputusan setiap siswa kelas " + grade + " pada semester Genap.");
+    const totals = ["Naik kelas","Tinggal kelas","Lulus"].map(label => {
+      const count = students.filter(s => s.decision === label).length;
+      if (label !== "Lulus") continuing += count;
+      return count ? count+" "+label : "";
+    }).filter(Boolean);
+    preview.push("Kelas "+grade+" — "+totals.join(", "));
+  }
+  if (!continuing) return alert("Tidak ada siswa yang perlu disalin.");
+  if (confirm("Buat buku "+(year+1)+"/"+(year+2)+" dengan nilai kosong?\n"+preview.join("\n")))
+    bookAction(async () => location.assign((await post({rev:revision,action:"rollover"})).url));
+};
+$("historyLoad").onclick = () => bookAction(async () => {
+  const {versions} = await post({rev:revision,action:"history"});
+  $("versions").replaceChildren(...versions.map(v => new Option("Revisi "+v,v)));
+  $("historyChoice").hidden = $("restore").hidden = !versions.length;
+  $("historyInfo").textContent = versions.length ? "" : "Belum ada revisi terdahulu.";
+});
+$("restore").onclick = () => {
+  const version = Number($("versions").value);
+  if (confirm("Pulihkan seluruh buku program ini dari revisi "+version+" sebagai draf baru?"))
+    bookAction(async () => {
+      await post({action:"restore",rev:revision,version});
+      location.reload();
+    });
+};

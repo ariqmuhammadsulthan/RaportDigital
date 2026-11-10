@@ -199,7 +199,19 @@ def create_app(directory=None, local=False):
             rev = row["rev"] if row else 0
             if data["rev"] != rev:
                 abort(409)
-            if data.get("action") == "issue":
+            action = data.get("action")
+            if action == "rollover":
+                if not row or year >= 2100:
+                    abort(422)
+                target = book_key(program, year + 1)
+                if record(target):
+                    return {"error": "Buku tahun tujuan sudah ada. Data tujuan tetap tersimpan."}, 409
+                state = crypt(row["data"], (*key, rev), False)
+                prepare_next_year(state, program, year)
+                validate(state, program, year + 1)
+                db().execute("INSERT INTO books VALUES (?,?,?,?,?)", (*target,1,crypt(state,(*target,1),True)))
+                return {"url": url_for("editor", program=program, year=year+1)}
+            if action == "issue":
                 if not row:
                     abort(422)
                 state = crypt(row["data"], (*key, rev), False)
@@ -213,16 +225,38 @@ def create_app(directory=None, local=False):
                     scores = student.get("n", {}).get(semester, {})
                     if not student.get("nama","").strip() or any(scores.get(k, "") == "" for k in subjects):
                         abort(422)
+                state["reportVersion"] = 2
                 state["c"] = {grade: group}
                 for student in group["st"]:
+                    if semester == "Ganjil":
+                        student.pop("decision", None)
                     student["n"] = {semester: student.get("n", {}).get(semester, {})}
                 context = (*key, rev, grade, semester, "issue")
                 db().execute("INSERT OR IGNORE INTO issues(owner,program,year,rev,grade,semester,issued,data) VALUES (?,?,?,?,?,?,?,?)",
                              (*key,rev,grade,semester,int(time.time()),crypt(state,context,True)))
                 issued = db().execute("SELECT id FROM issues WHERE owner=? AND program=? AND year=? AND rev=? AND grade=? AND semester=?", (*key,rev,grade,semester)).fetchone()
                 return {"url": url_for("archive", ident=issued[0])}
-            state = data.get("state")
+            db().execute("""CREATE TABLE IF NOT EXISTS drafts(owner TEXT, program TEXT, year INTEGER,
+                            rev INTEGER, data BLOB, PRIMARY KEY(owner,program,year,rev))""")
+            if action == "history":
+                versions = db().execute("SELECT rev FROM drafts WHERE owner=? AND program=? AND year=? ORDER BY rev DESC", key)
+                return {"versions": [r["rev"] for r in versions]}
+            if action == "restore":
+                if type(data.get("version")) is not int:
+                    abort(400)
+                previous = db().execute("SELECT rev,data FROM drafts WHERE owner=? AND program=? AND year=? AND rev=?",
+                                        (*key,data.get("version"))).fetchone()
+                if not previous or not row:
+                    abort(404)
+                state = crypt(previous["data"], (*key,previous["rev"]), False)
+            elif action is None:
+                state = data.get("state")
+            else:
+                abort(400)
             validate(state, program, year)
+            if row:
+                db().execute("INSERT INTO drafts VALUES (?,?,?,?,?)", (*key,rev,row["data"]))
+                db().execute("DELETE FROM drafts WHERE owner=? AND program=? AND year=? AND rev<=?", (*key,rev-5))
             rev += 1
             db().execute("INSERT OR REPLACE INTO books VALUES (?,?,?,?,?)", (*key,rev,crypt(state,(*key,rev),True)))
         return {"rev": rev}
@@ -247,6 +281,37 @@ def create_app(directory=None, local=False):
     return app
 
 
+def prepare_next_year(state, program, year):
+    grades = CLASSES[program].split()
+    rosters = {grade: [] for grade in grades}
+    count = 0
+    for i, grade in enumerate(grades):
+        group = state["c"][grade]
+        for student in group["st"]:
+            decision = student.get("decision")
+            if not student.get("nama", "").strip() or not decision:
+                abort(422)
+            if decision == "Lulus" and grade == grades[-1]:
+                continue
+            if decision == "Tinggal kelas":
+                target = grade
+            elif decision == "Naik kelas" and grade != grades[-1]:
+                target = grades[i+1]
+            else:
+                abort(422)
+            identity = {k:v for k,v in student.items() if k not in ("n", "decision", "norap")}
+            rosters[target].append(identity)
+            count += 1
+        group.update(tahun=f"{year+1}/{year+2}", wali="", nip="", naik="")
+        for semester in group["ms"].values():
+            semester["tgl"] = ""
+    if not count:
+        abort(422)
+    for grade, group in state["c"].items():
+        group["st"] = rosters[grade]
+    state["sch"].update(kelas=grades[0], sem="Ganjil")
+
+
 def subject_key(name):
     return re.sub("[^a-z0-9]", "", name.lower())
 
@@ -267,7 +332,7 @@ def validate(state, program, year):
         logo = state["logo"]
         if not assert_valid or not isinstance(logo,str) or (logo and not re.fullmatch(r"data:image/png;base64,[A-Za-z0-9+/]+=*",logo)):
             abort(422)
-        for group in state["c"].values():
+        for grade, group in state["c"].items():
             if not isinstance(group,dict) or not strings(group, "wali nip naik tahun") or group["tahun"] != f"{year}/{year+1}" or set(group["ms"]) != set(SEMESTERS):
                 abort(422)
             for m in group["ms"].values():
@@ -290,7 +355,9 @@ def validate(state, program, year):
             if not isinstance(group["st"],list) or len(group["st"]) > 1000:
                 abort(422)
             for student in group["st"]:
-                if not isinstance(student,dict) or set(student) - set("nama nipd nisn jk tl tgl agama alamat norap anak tel dk dtg ayah ibu kayah kibu wali kwali n".split()) or not all(isinstance(v,str) and len(v)<=4000 for k,v in student.items() if k!="n"):
+                if not isinstance(student,dict) or set(student) - set("nama nipd nisn jk tl tgl agama alamat norap anak tel dk dtg ayah ibu kayah kibu wali kwali n decision".split()) or not all(isinstance(v,str) and len(v)<=4000 for k,v in student.items() if k!="n"):
+                    abort(422)
+                if student.get("decision", "") not in ("", "Tinggal kelas", "Lulus" if grade == grades[-1] else "Naik kelas"):
                     abort(422)
                 for sem, scores in student.get("n",{}).items():
                     if sem not in SEMESTERS or not isinstance(scores,dict):

@@ -25,6 +25,13 @@ Buka <http://127.0.0.1:8765>. Perintah `teacher` meminta nama akun dan kata sand
 
 Data dari versi HTML lama tetap berada di penyimpanan browser asal. Gunakan sumber Excel lama untuk mengisi buku yang sesuai. Periksa identitas, nilai dan hasil cetak sebelum membersihkan penyimpanan lama.
 
+## Periksa nilai dan siapkan tahun berikutnya
+
+- Periksa daftar serta urutan mapel kelas sebelum menempel nilai. Buku baru mengikuti susunan templat upstream November 2026, termasuk IPAS dan Bahasa Inggris untuk Paket A. Buku lama memakai susunan yang sudah disimpan. Sertakan judul kolom dari tabel saat menempel beberapa kolom. Untuk data tanpa judul, cocokkan urutan tujuan yang ditampilkan dengan lembar Excel.
+- Di **Periksa & cetak → Rekap kelas & keputusan siswa**, rata-rata menggunakan nilai yang terisi, termasuk nol. Pada semester Genap, pilih keputusan untuk setiap siswa. Keputusan yang masih kosong tidak dicetak. Nomor rapor yang belum diisi tampil sebagai tanda pisah. Arsip yang terbit pada versi lama mempertahankan tampilan nomor dan teks kenaikan sebelumnya.
+- Setelah semua kelas dalam program selesai, pilih **Siapkan tahun berikutnya** dan periksa jumlah siswa per kelas. Siswa yang naik atau tinggal kelas disalin ke buku baru. Siswa yang lulus hanya tercatat di tahun asal. Nomor rapor, nilai, kehadiran, keputusan, wali kelas, dan tanggal rapor mulai kosong. Buku tujuan yang sudah tersimpan tidak dapat ditimpa.
+- **Riwayat draf** menyimpan lima revisi sebelumnya untuk seluruh buku program pada tahun tersebut. Pemulihan membuat revisi baru. Arsip terbit tetap tersedia secara terpisah.
+
 ## Penyimpanan dan batas keamanan
 
 - SQLite, kunci AES-256-GCM dan hash kata sandi berada secara default di `~/.raportdigital`, di luar repositori. Atur `RAPOR_DATA_DIR` ke direktori privat lain sebelum inisialisasi jika diperlukan. Aktifkan enkripsi disk dan batasi izin sistem operasi ke akun layanan atau pengelola. Di Windows, periksa ACL direktori.

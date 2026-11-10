@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import secrets
 import sqlite3
@@ -82,6 +83,41 @@ class GradebookSecurityTests(unittest.TestCase):
         self.db.commit()
         with self.assertRaises(InvalidTag):
             self.client.get(self.path)
+
+    def test_roster_uses_confirmed_decisions_and_preserves_source(self):
+        self.login()
+        state = self.state()
+        # Independent fixtures for each grade.
+        state["c"] = {grade: copy.deepcopy(group) for grade,group in state["c"].items()}
+        for grade,decision in [("X","Naik kelas"),("XI","Tinggal kelas"),("XII","Lulus")]:
+            student = state["c"][grade]["st"][0]
+            student.update(nama=grade,decision=decision,norap="sample")
+        state["c"]["X"]["st"][0].pop("decision")
+        self.assertEqual(self.post(rev=0,state=state).status_code,200)
+        self.assertEqual(self.post(rev=1,action="rollover").status_code,422)
+        state["c"]["X"]["st"][0]["decision"]="Naik kelas"
+        self.assertEqual(self.post(rev=1,state=state).status_code,200)
+        self.assertEqual(self.post(rev=1,action="rollover").status_code,409)
+        self.assertEqual(self.post(rev=2,action="rollover").status_code,200)
+        target = self.client.get(self.path.replace("2026","2027")).json["state"]
+        self.assertEqual(target["c"]["XI"]["st"],[{"nama":"X"},{"nama":"XI"}])
+        self.assertFalse(target["c"]["XII"]["st"])
+        self.assertEqual(target["c"]["XI"]["ms"]["Genap"]["tgl"],"")
+        self.assertEqual(self.post(rev=2,action="rollover").status_code,409)
+        self.assertEqual(self.client.get(self.path).json["state"],state)
+
+    def test_bounded_encrypted_draft_restore(self):
+        self.login()
+        state = self.state()
+        for revision in range(7):
+            state["sch"]["nama"] = str(revision)
+            self.assertEqual(self.post(rev=revision,state=state).status_code,200)
+        self.assertEqual(self.post(rev=7,action="history").json["versions"],[6,5,4,3,2])
+        self.assertEqual(self.post(rev=7,action="restore",version=1).status_code,404)
+        self.assertEqual(self.post(rev=6,action="restore",version=2).status_code,409)
+        self.assertEqual(self.post(rev=7,action="restore",version=2).json,{"rev":8})
+        self.assertEqual(self.client.get(self.path).json["state"]["sch"]["nama"],"1")
+        self.assertTrue(all(b"Siswa Uji" not in row[0] for row in self.db.execute("SELECT data FROM drafts")))
 
     def test_expiry_and_throttling(self):
         self.login()
