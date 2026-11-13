@@ -1,5 +1,14 @@
 # Changelog
 
+**English** | [Bahasa Indonesia](CHANGELOG.id.md)
+
+[← README](README.md)
+
+## Unreleased
+
+- Complete English and Indonesian documentation, with a language switch on every
+  page and links that stay in the selected language. Application behavior is unchanged.
+
 ## 1.1.0 — School and equivalency presets · 2026-11-13
 
 - SD/SMP/SMA defaults, an equally supported Paket A/B/C preset, and custom program

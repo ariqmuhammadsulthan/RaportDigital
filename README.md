@@ -1,9 +1,12 @@
 # Rapor Digital
 
+**English** | [Bahasa Indonesia](README.id.md)
+
 A standalone gradebook starter for Indonesian educational institutions. Teachers
 enter or paste marks, review each class, and print A4
 reports. The reference app uses Flask, SQLite and plain JavaScript; no frontend
 build, CDN or external account is required.
+The app interface is in Indonesian.
 
 Use it locally, host it as a service alongside your stack, or adapt the editor to
 your own backend. It is a starting point you maintain, not a hosted service or a
@@ -46,7 +49,7 @@ in `~/.raportdigital`. Stop with Ctrl+C.
 
 | Task | Guide |
 |---|---|
-| Fill marks and print reports | [Teacher guide — Bahasa Indonesia](docs/using.md) |
+| Fill marks and print reports | [Teacher guide](docs/using.md) |
 | Adapt the code or connect another backend | [Integration](docs/integration.md) |
 | Host, back up, test or upgrade | [Operations](docs/operations.md) |
 | Understand reuse and provenance | [License scope](docs/origins.md) |

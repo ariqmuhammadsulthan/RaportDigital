@@ -1,5 +1,9 @@
 # Origin and license scope
 
+**English** | [Bahasa Indonesia](origins.id.md)
+
+[← README](../README.md)
+
 The report editor and printed layouts originate from the public
 [Ganosec19/RaportDigital](https://github.com/Ganosec19/RaportDigital) project.
 The fork's inherited baseline is commit `37492409b62c5bf7180a1c58c5a90a48eb81727f`.

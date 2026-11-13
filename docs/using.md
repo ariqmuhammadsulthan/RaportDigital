@@ -1,64 +1,69 @@
-# Menggunakan Rapor Digital
+# Using Rapor Digital
+
+**English** | [Bahasa Indonesia](using.id.md)
 
 [← README](../README.md)
 
-Aplikasi ini bisa digunakan oleh sekolah maupun penyelenggara pendidikan
-kesetaraan. Nama jenjang dan program mengikuti pengaturan pengelola, misalnya
-SD/SMP/SMA atau Paket A/B/C. Cara mengisi dan mencetak rapor tetap sama.
+Schools and equivalency education providers use the same entry and printing
+workflow. Program names follow the operator's configuration, such as SD/SMP/SMA
+or Paket A/B/C. The interface labels below stay in Indonesian so you can find
+them in the app.
 
-## Isi dan cetak
+## Enter marks and print
 
-1. Masuk dengan akun yang dibuat pengelola. Pilih tahun awal pelajaran (misalnya
-   **2026** untuk **2026/2027**), lalu buka program, kelas, dan semester.
-2. Lengkapi **Pengaturan**: identitas satuan pendidikan, wali kelas, tanggal rapor,
-   mata pelajaran, KKM, dan deskripsi capaian. Tidak ada identitas sekolah bawaan.
-   Susunan mata pelajaran adalah contoh, bukan ketentuan kurikulum yang dijamin
-   selalu berlaku. Buku lama mempertahankan pengaturannya sendiri.
-3. Buka **Data Siswa & Nilai**. Isi langsung atau salin sel dari Excel, klik sel
-   pertama yang akan diisi, lalu tempel. Pilih kolom identitas, nilai, atau
-   kehadiran untuk memperpendek tabel. Identitas siswa berlaku pada kedua semester.
-4. Tunggu **Tersimpan** sebelum meninggalkan halaman. Perubahan disimpan otomatis;
-   tidak ada tombol Simpan terpisah. Jika penyimpanan gagal, jangan tutup halaman.
-   Klik **Coba simpan lagi** setelah masalahnya teratasi.
-5. Di **Periksa & cetak**, lengkapi isian yang ditandai lalu pilih
-   **Terbitkan arsip kelas**. Periksa pratinjau dan cetak dengan kertas A4,
-   skala 100%, serta cetak latar belakang (*Background graphics*).
+1. Sign in with the account your operator created. Choose the starting year
+   (**2026** for **2026/2027**, for example), then open a program, class and semester.
+2. Complete **Pengaturan** (settings): institution details, class teacher, report
+   date, subjects, KKM (minimum passing marks) and achievement descriptions. No
+   school identity is prefilled. Subjects are examples, not a guarantee of current
+   curriculum requirements. Existing books retain their own settings.
+3. Open **Data Siswa & Nilai** (pupils and marks). Enter data directly, or copy
+   cells from Excel, click the first destination cell and paste. Filter the
+   columns to identity, marks or attendance for a shorter table. Pupil identity
+   applies to both semesters.
+4. Wait for **Tersimpan** (saved) before leaving the page. Changes save
+   automatically; there is no separate Save button. If saving fails, keep the
+   page open. Choose **Coba simpan lagi** (retry saving) once the problem is resolved.
+5. In **Periksa & cetak** (review and print), complete the highlighted fields and
+   choose **Terbitkan arsip kelas** (issue a class archive). Check the preview,
+   then print on A4 paper at 100% scale with *Background graphics* enabled.
 
-Saat menempel beberapa kolom, sertakan judul kolom yang urutannya sama dengan
-tabel. Jika tidak ada judul, cocokkan urutan yang ditampilkan sebelum menyetujui.
-Nilai harus 0–100; **0 tetap dihitung sebagai nilai**. Kolom Izin, Sakit, dan Alpa
-diisi dengan jumlah hari. Isi JK dengan L atau P.
+When pasting several columns, include headings in the same order as the table.
+Without headings, check the displayed order before confirming. Marks must be
+0–100; **0 counts as an entered mark**. Izin (permitted absence), Sakit (sickness)
+and Alpa (unexcused absence) contain numbers of days. Use L (male) or P (female)
+for JK.
 
-Arsip terbit mencakup seluruh siswa di kelas dan semester terpilih. Pilihan siswa
-dan bagian rapor hanya mengatur cetakan. Draf diberi tanda **Belum diterbitkan**;
-arsip diberi nomor. Koreksi dilakukan di buku nilai, lalu diterbitkan sebagai arsip
-baru. Bandingkan PDF atau kertas dengan arsip dalam aplikasi; nomor arsip bukan
-tanda tangan digital.
+An issued archive contains every pupil in the selected class and semester. Pupil
+and report-section selections only control printing. Drafts are stamped **Belum
+diterbitkan** (not issued); archives have a number. Make corrections in the book,
+then issue a new archive. Compare a PDF or paper copy with the archive in the app;
+an archive number is not a digital signature.
 
-Jika pengelola mengganti nama program, buku nilai mengikuti nama yang baru.
-Data siswa dan nilai tetap tersimpan. Arsip terbit tetap memakai nama saat
-diterbitkan.
+If the operator renames a program, active books use the new name. Pupils and marks
+remain saved. Issued archives keep the name used when they were published.
 
-## Riwayat dan tahun berikutnya
+## History and the following year
 
-- **Riwayat penyimpanan** menampilkan lima revisi sebelum versi saat ini, untuk
-  seluruh buku program dan tahun tersebut. Pemulihan membuat revisi baru dan
-  tidak mengubah arsip terbit. Simpan perubahan yang diperlukan sebelum memilihnya.
-- **Rekap kelas & keputusan siswa** menghitung rata-rata dari nilai yang terisi.
-  Pada semester Genap, pilih keputusan tiap siswa; keputusan kosong tidak dicetak.
-- **Siapkan tahun berikutnya** menyalin siswa sesuai keputusan naik atau tinggal
-  kelas. Siswa yang lulus tetap tercatat di tahun asal. Nomor rapor, nilai,
-  kehadiran, keputusan, wali kelas, dan tanggal rapor mulai kosong. Buku tujuan
-  yang sudah ada tidak ditimpa.
+- **Riwayat penyimpanan** (save history) lists the five previous revisions of the
+  entire program/year book. Restoring creates a new revision and does not alter
+  issued archives. Save any changes you need before choosing it.
+- **Rekap kelas & keputusan siswa** (class summary and pupil decisions) averages
+  entered marks. In Genap, the second semester, choose each pupil's year-end
+  decision; empty decisions are not printed.
+- **Siapkan tahun berikutnya** (prepare the following year) copies pupils according
+  to their promotion or retention decisions. Graduates remain in the source year.
+  Report numbers, marks, attendance, decisions, class teacher and report dates
+  start empty. An existing destination book is not overwritten.
 
-Nomor rapor yang kosong tampil sebagai tanda pisah. Arsip versi lama tetap memakai
-aturan nomor dan teks kenaikan kelas sebelumnya. Data versi HTML lama masih berada
-di browser asal; gunakan sumber Excel untuk mengisi ulang, lalu periksa identitas,
-nilai dan cetakan sebelum membersihkan data lama.
+Empty report numbers appear as a dash. Older archives retain their original
+numbering and class-promotion text. Data from the old HTML version remains in the
+original browser; use the source Excel files to enter it again. Check identities,
+marks and printed reports before clearing old data.
 
-## Jaga data siswa
+## Protect pupil data
 
-Jika dua tab mengubah buku yang sama, penyimpanan yang memakai revisi lama ditolak.
-Salin perubahan yang belum tersimpan sebelum memuat ulang. Gunakan **Keluar** dan
-kunci layar saat meninggalkan komputer. PDF dan cetakan berisi data pribadi;
-simpan hanya di tempat yang dapat diakses pihak berwenang.
+If two tabs edit the same book, a save based on an older revision is refused.
+Copy any unsaved changes before reloading. Use **Keluar** (sign out) and lock the
+screen when leaving the computer. PDFs and printed reports contain personal data;
+store them where only authorized people can access them.

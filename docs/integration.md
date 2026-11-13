@@ -1,5 +1,7 @@
 # Adapt or integrate
 
+**English** | [Bahasa Indonesia](integration.id.md)
+
 [← README](../README.md) · [Operations](operations.md)
 
 The included backend is Python/Flask. Other stacks can run it as a separate service
@@ -134,3 +136,8 @@ or unowned records, **413** above 4 MB, and **422** for invalid state. API failu
 return an `error` message; ordinary HTTP failures also include numeric `code`.
 Never return decrypted records after an integrity failure. Porting the UI alone
 does not carry over these server-side protections.
+
+## Updating documentation
+
+Update English and Indonesian pairs together: `name.md` and `name.id.md`. Keep
+commands and API examples identical, and link to guides in the reader's language.

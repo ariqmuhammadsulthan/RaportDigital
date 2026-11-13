@@ -1,5 +1,7 @@
 # Run and maintain
 
+**English** | [Bahasa Indonesia](operations.id.md)
+
 [← README](../README.md) · [Integration](integration.md)
 
 ## Storage and accounts

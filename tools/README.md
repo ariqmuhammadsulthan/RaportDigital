@@ -1,5 +1,9 @@
 # Browser checks
 
+**English** | [Bahasa Indonesia](README.id.md)
+
+[← README](../README.md) · [Operations](../docs/operations.md)
+
 Install Playwright and its browsers in a disposable directory outside this
 repository, or use an existing installation. No browser tooling ships in the app.
 From the repository root, in CMD:
@@ -7,13 +11,17 @@ From the repository root, in CMD:
 ```bat
 set "PYTHON_BIN=%CD%\.venv\Scripts\python.exe"
 set "RAPOR_PLAYWRIGHT=C:\path\to\node_modules\playwright"
+set "RAPOR_EDUCATION=school"
 set "RAPOR_BROWSER=firefox"
 node tools\browser_check.cjs
 set "RAPOR_EDUCATION=equivalency"
 node tools\browser_check.cjs
-set "RAPOR_EDUCATION="
+set "RAPOR_EDUCATION=school"
 set "RAPOR_BROWSER=chromium"
 node tools\browser_check.cjs
+set "RAPOR_EDUCATION=equivalency"
+node tools\browser_check.cjs
+set "RAPOR_EDUCATION="
 ```
 
 `RAPOR_CHROMIUM` can point to an installed Chrome executable. Set
