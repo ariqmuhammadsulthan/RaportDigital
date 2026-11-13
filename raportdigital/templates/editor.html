@@ -1,16 +1,18 @@
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ title }} · Rapor Digital</title><link rel="stylesheet" href="/static/report.css"><link rel="stylesheet" href="/static/editor.css">
-<script defer src="/static/report.js"></script><script defer src="/static/workbook.js"></script></head>
-<body data-program="{{ program }}" data-year="{{ year }}" data-issue="{{ issue }}" data-csrf="{{ g.user.csrf }}">
+<title>{{ title }} · Rapor Digital</title><link rel="stylesheet" href="{{ url_for('static', filename='report.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='editor.css') }}">
+<script defer src="{{ url_for('static', filename='report.js') }}"></script><script defer src="{{ url_for('static', filename='workbook.js') }}"></script></head>
+<body data-program="{{ program }}" data-year="{{ year }}" data-issue="{{ issue }}" data-csrf="{{ g.user.csrf }}"
+      data-endpoint="{{ url_for('snapshot', ident=issue) if issue else url_for('book', program=program, year=year) }}"
+      data-login="{{ url_for('login') }}">
 <p id="loading" role="status">Memuat buku nilai…</p>
 <div class="wrap" hidden id="work">
-<header class="top"><a href="/?year={{ year }}">← Buku nilai</a><span>{{ year }}/{{ year+1 }}</span><form id="leave" method="post" action="/logout"><input type="hidden" name="csrf" value="{{ g.user.csrf }}"><button>Keluar</button></form></header>
+<header class="top"><a href="{{ url_for('home', year=year) }}">← Buku nilai</a><span>{{ year }}/{{ year+1 }}</span><form id="leave" method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf" value="{{ g.user.csrf }}"><button>Keluar</button></form></header>
 <h1>{{ title }} <small>{{ '· Arsip #' ~ issue if issue else '· Buku nilai' }}</small></h1>
 <div class="savebar" aria-live="polite"><span id="status">Memuat buku…</span> <button id="retry" hidden>Coba simpan lagi</button></div>
 <div class="ctl row" id="classes"><label>Kelas <select id="kl" data-action="chg"></select></label><label>Semester <select id="sm" data-action="chg"></select></label><span class="mu">Identitas siswa digunakan di kedua semester.</span></div>
 <nav class="tabs"><button id="b1" data-action="tab1">1 Pengaturan</button><button id="b2" data-action="tab2">2 Data Siswa &amp; Nilai</button><button id="b3" data-action="tab3">3 Periksa &amp; cetak</button></nav>
-<details class="ctl" id="historyBox"><summary>Riwayat draf</summary>
-<button id="historyLoad">Lihat lima revisi terakhir</button>
+<details class="ctl" id="historyBox"><summary>Riwayat penyimpanan</summary>
+<button id="historyLoad">Lihat lima revisi sebelumnya</button>
 <label id="historyChoice" hidden>Revisi <select id="versions"></select></label>
 <button id="restore" hidden>Pulihkan revisi</button><span id="historyInfo" role="status"></span></details>
 <section id="t1"></section>
@@ -26,7 +28,7 @@
 <label><input type="checkbox" id="c1" checked data-action="draw">Sampul</label>
 <label><input type="checkbox" id="c2" checked data-action="draw">Identitas sekolah</label>
 <label><input type="checkbox" id="c4" checked data-action="draw">Keterangan diri</label>
-<label><input type="checkbox" id="c3" checked data-action="draw">Raport semester</label>
+<label><input type="checkbox" id="c3" checked data-action="draw">Rapor semester</label>
 <button id="issue">Terbitkan arsip kelas</button><button class="pb" data-action="print">Cetak / Simpan PDF</button>
 <span class="mu">Di dialog cetak: kertas A4, skala 100%, aktifkan “Background graphics”.</span>
 </div>

@@ -6,6 +6,15 @@ instance/
 *.db*
 *.sqlite*
 *.key
+*.pem
+*.p12
+*.pfx
 *.pdf
 *.xlsx
 *.csv
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/

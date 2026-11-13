@@ -1,3 +1,4 @@
+// Report editor/layout adapted from Ganosec19/RaportDigital; see docs/origins.md.
 const program = document.body.dataset.program;
 const year = Number(document.body.dataset.year);
 const senior = program.startsWith("c-");
@@ -119,7 +120,7 @@ const F = [
   ["a1", "Alamat baris 1"],
   ["a2", "Alamat baris 2"],
   ["a3", "Alamat baris 3 (provinsi + kode pos)"],
-  ["ar", "Alamat singkat di raport (baris 2)"],
+  ["ar", "Alamat singkat pada halaman nilai"],
   ["pos", "Kode pos"],
   ["web", "Website"],
   ["email", "Email"],
@@ -478,7 +479,7 @@ const ktr = (s) => {
     ["Agama", v(s.agama)],
     ["Anak Ke", v(s.anak)],
     ["Alamat Peserta Didik", v(s.alamat)],
-    ["Telephon", v(s.tel)],
+    ["Telepon", v(s.tel)],
     ["Diterima di sekolah ini", null],
     ["di Kelas", v(s.dk)],
     ["pada tanggal", v(s.dtg)],
@@ -492,7 +493,7 @@ const ktr = (s) => {
     ["Nama Wali Peserta Didik", v(s.wali)],
     ["Pekerjaan Wali Peserta Didik", v(s.kwali)],
   ];
-  return `<div class="pg ks">${wm()}<h2 class="kt">KETERANGAN DIRI TENTANG PESERTA DIDIK</h2><table class="k2">${r.map(([k, x]) => (x === null ? `<tr><td colspan="3">${k}</td></tr>` : `<tr><td>${k}</td><td>:</td><td>${x}</td></tr>`)).join("")}</table><div class="sg2"><div class="foto">PAS<br>3X4</div><div>${esc(c.tempat)}, ${esc(g)}<br>Kepala Sekolah,<br><br><br><br><br>${esc(c.kepala)}<br>Nip: ${esc(c.nipk || "-")}</div></div></div>`;
+  return `<div class="pg ks">${wm()}<h2 class="kt">KETERANGAN DIRI TENTANG PESERTA DIDIK</h2><table class="k2">${r.map(([k, x]) => (x === null ? `<tr><td colspan="3">${k}</td></tr>` : `<tr><td>${k}</td><td>:</td><td>${x}</td></tr>`)).join("")}</table><div class="sg2"><div class="foto">PAS<br>3X4</div><div>${esc(c.tempat)}, ${esc(g)}<br>Kepala Sekolah,<br><br><br><br><br>${esc(c.kepala)}<br>NIP: ${esc(c.nipk || "-")}</div></div></div>`;
 };
 const CG =
   '<colgroup><col style="width:9mm"><col style="width:50mm"><col style="width:13mm"><col style="width:16mm"><col></colgroup>';

@@ -7,7 +7,6 @@ import time
 import unittest
 from pathlib import Path
 
-from cryptography.exceptions import InvalidTag
 from werkzeug.security import generate_password_hash
 
 from app import create_app
@@ -81,8 +80,11 @@ class GradebookSecurityTests(unittest.TestCase):
         self.assertNotIn(b"Siswa Uji",ciphertext)
         self.db.execute("UPDATE books SET data=?",(ciphertext[:-1]+bytes([ciphertext[-1]^1]),))
         self.db.commit()
-        with self.assertRaises(InvalidTag):
-            self.client.get(self.path)
+        response = self.client.get(self.path)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json["code"], 500)
+        self.assertNotIn("InvalidTag", response.get_data(as_text=True))
+        self.assertEqual(self.client.get(issued).json["state"], original)
 
     def test_roster_uses_confirmed_decisions_and_preserves_source(self):
         self.login()
@@ -105,6 +107,23 @@ class GradebookSecurityTests(unittest.TestCase):
         self.assertEqual(target["c"]["XI"]["ms"]["Genap"]["tgl"],"")
         self.assertEqual(self.post(rev=2,action="rollover").status_code,409)
         self.assertEqual(self.client.get(self.path).json["state"],state)
+
+    def test_teacher_ownership_and_issued_write_guards(self):
+        self.login()
+        self.assertEqual(self.post(rev=0, state=self.state()).status_code, 200)
+        archive = self.post(rev=1, action="issue").json["url"].replace("/issued/", "/api/issued/")
+        self.db.execute("INSERT INTO users VALUES (?,?)", ("other", generate_password_hash(self.password)))
+        self.db.commit()
+        other = self.app.test_client()
+        self.assertEqual(other.post("/login", data={"name": "other", "password": self.password},
+                                    headers=self.origin).status_code, 302)
+        self.assertEqual(other.get(archive).status_code, 404)
+        self.assertEqual(other.get(self.path).json, {"rev": 0, "state": None})
+        for sql in ("DELETE FROM issues", "UPDATE issues SET rev=99"):
+            with self.assertRaises(sqlite3.IntegrityError):
+                self.db.execute(sql)
+            self.db.rollback()
+        self.assertEqual(self.client.get(archive).status_code, 200)
 
     def test_bounded_encrypted_draft_restore(self):
         self.login()

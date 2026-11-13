@@ -1,7 +1,6 @@
 const issuedId = Number(document.body.dataset.issue);
-const endpoint = issuedId
-  ? "/api/issued/" + issuedId
-  : "/api/book/" + program + "/" + year;
+// URLs come from the host template, so mounting at /grades works too.
+const endpoint = document.body.dataset.endpoint;
 let revision = 0;
 let dirty = false;
 let timer;
@@ -20,6 +19,8 @@ async function post(payload) {
       "X-CSRF-Token": document.body.dataset.csrf,
     },
     body: JSON.stringify(payload),
+  }).catch(() => {
+    throw new Error("Tidak dapat terhubung. Periksa koneksi dan coba lagi; jangan tutup halaman sebelum perubahan tersimpan.");
   });
   if (!response.ok) {
     const detail = await response.json().catch(() => ({}));
@@ -28,7 +29,7 @@ async function post(payload) {
         401: "Sesi berakhir. Masuk kembali untuk melanjutkan.",
         403: "Sesi telah berubah. Buka ulang buku melalui ruang guru.",
         409: "Buku berubah di tab lain. Salin perubahan Anda sebelum memuat ulang.",
-        413: "Buku melebihi batas 4 MB. Kurangi ukuran logo atau jumlah data.",
+        413: "Buku melebihi batas 4 MB. Gunakan logo yang lebih kecil, lalu coba simpan kembali.",
         422: "Periksa data. Nilai dan KKM harus 0–100, jumlah absen bilangan bulat, dan nama mapel harus unik.",
       }[response.status] || "Server tidak dapat menyimpan perubahan."));
   }
@@ -90,8 +91,8 @@ function review() {
     ? "Arsip #" + issuedId + " · Kelas " + S.sch.kelas + " · " + S.sch.sem
     : gaps.length
       ? "Lengkapi " + gaps.join(", ") + " sebelum menerbitkan arsip."
-      : group.st.length +
-        " siswa siap diterbitkan untuk semester " +
+      : "Data " + group.st.length +
+        " siswa sudah lengkap. Rapor siap diterbitkan untuk semester " +
         S.sch.sem +
         ".";
   const list = $("missing");
@@ -129,7 +130,7 @@ async function issue() {
         S.sch.kelas +
         ", semester " +
         S.sch.sem +
-        "?",
+        "? Arsip ini tidak dapat diubah. Jika ada koreksi, terbitkan rapor baru.",
     )
   )
     return;
@@ -194,7 +195,7 @@ async function openBook() {
   try {
     const response = await fetch(endpoint);
     if (response.status === 401) {
-      location.replace("/login");
+      location.replace(document.body.dataset.login);
       return;
     }
     if (!response.ok) throw new Error();
@@ -309,7 +310,7 @@ $("historyLoad").onclick = () => bookAction(async () => {
 });
 $("restore").onclick = () => {
   const version = Number($("versions").value);
-  if (confirm("Pulihkan seluruh buku program ini dari revisi "+version+" sebagai draf baru?"))
+  if (confirm("Gunakan isi revisi "+version+" untuk seluruh buku program ini? Perubahan saat ini disimpan terlebih dahulu, lalu revisi yang dipilih menjadi revisi terbaru."))
     bookAction(async () => {
       await post({action:"restore",rev:revision,version});
       location.reload();

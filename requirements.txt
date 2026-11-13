@@ -1,3 +1,2 @@
-Flask>=3.1.3,<3.2
-cryptography>=46,<50
-waitress>=3.0.2,<4
+# Compatibility for existing setup commands. Dependencies live in pyproject.toml.
+-e .

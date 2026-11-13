@@ -1,3 +1,0 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}Rapor Digital{% endblock %}</title><link rel="stylesheet" href="/static/site.css"></head>
-<body><header><div class="brand"><span class="mark" aria-hidden="true">R</span><strong>Rapor Digital</strong></div>{% if g.user %}<form method="post" action="/logout"><span>{{ g.user.name }}</span><input type="hidden" name="csrf" value="{{ g.user.csrf }}"><button>Keluar</button></form>{% endif %}</header>
-<main>{% block content %}{% endblock %}</main></body></html>
