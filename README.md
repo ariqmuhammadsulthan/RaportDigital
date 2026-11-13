@@ -1,7 +1,7 @@
 # Rapor Digital
 
-A standalone gradebook starter for Indonesian equivalency education: Paket A, B,
-C IPA and C IPS. Teachers enter or paste marks, review each class, and print A4
+A standalone gradebook starter for Indonesian educational institutions. Teachers
+enter or paste marks, review each class, and print A4
 reports. The reference app uses Flask, SQLite and plain JavaScript; no frontend
 build, CDN or external account is required.
 
@@ -9,6 +9,10 @@ Use it locally, host it as a service alongside your stack, or adapt the editor t
 your own backend. It is a starting point you maintain, not a hosted service or a
 promise of ongoing updates. Review the subject defaults and report format before
 using real pupil records.
+
+Start with **SD, SMP, SMA IPA and SMA IPS**, switch to **Paket A/B/C**, or use your
+own program names. [Program setup](docs/integration.md#choose-programs) changes the
+menus and reports without changing book IDs or moving saved marks.
 
 ## Start locally
 

@@ -1,5 +1,6 @@
 import copy
 import hashlib
+import json
 import secrets
 import sqlite3
 import tempfile
@@ -8,6 +9,7 @@ import unittest
 from pathlib import Path
 
 from werkzeug.security import generate_password_hash
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from app import create_app
 
@@ -17,7 +19,7 @@ class GradebookSecurityTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.app = create_app(self.root, local=True)
+        self.app = create_app(self.root, local=True, education="school", program_names={})
         self.app.testing = True
         init = self.app.test_cli_runner().invoke(args=["init"])
         self.assertIsNone(init.exception)
@@ -146,6 +148,47 @@ class GradebookSecurityTests(unittest.TestCase):
         for _ in range(10):
             self.assertEqual(self.client.post("/login",data={},headers=self.origin).status_code,401)
         self.assertEqual(self.client.post("/login",data={},headers=self.origin).status_code,429)
+
+    def test_preset_changes_keep_books_and_freeze_issued_labels(self):
+        self.login()
+        state = self.state()
+        state["reportProfile"] = {"name": "Browser-supplied name"}
+        self.assertEqual(self.post(rev=0, state=state).status_code, 200)
+        state.pop("reportProfile")
+        self.assertEqual(self.client.get(self.path).json["state"], state)
+        archive = self.post(rev=1, action="issue").json["url"]
+        issued = self.client.get("/api" + archive).json["state"]
+        self.assertEqual(issued["reportProfile"]["name"], "SMA IPA")
+
+        # Same store and authenticated session, now opened with another preset.
+        other = create_app(self.root, local=True, education="equivalency", program_names={}).test_client()
+        other.set_cookie("rapor_session", self.client.get_cookie("rapor_session").value)
+        self.assertEqual(other.get(self.path).json["state"], state)
+        self.assertIn("<title>Paket C IPA", other.get("/book/c-ipa/2026").text)
+        self.assertIn("<title>SMA IPA", other.get(archive).text)
+        self.assertIn("SMA IPA · Kelas X", other.get("/?year=2026").text)
+        self.assertEqual(other.get("/api" + archive).json["state"], issued)
+        self.assertEqual(other.post(self.path, json={"rev": 1, "state": state}, headers=self.headers).status_code, 200)
+        new_archive = other.post(self.path, json={"rev": 2, "action": "issue"}, headers=self.headers).json["url"]
+        self.assertEqual(other.get("/api" + new_archive).json["state"]["reportProfile"]["name"], "Paket C IPA")
+
+    def test_legacy_archives_keep_equivalency_presentation(self):
+        self.login()
+        state = self.state()
+        state["c"] = {"X": state["c"]["X"]}
+        context = ("fixture", "c-ipa", 2026, 1, "X", "Ganjil", "issue")
+        nonce = secrets.token_bytes(12)
+        cipher = AESGCM((self.root / "records.key").read_bytes())
+        encrypted = nonce + cipher.encrypt(nonce, json.dumps(state).encode(), json.dumps(context).encode())
+        ident = self.db.execute("INSERT INTO issues(owner,program,year,rev,grade,semester,issued,data) VALUES (?,?,?,?,?,?,?,?)",
+                                (*context[:-1], int(time.time()), encrypted)).lastrowid
+        self.db.commit()
+        page = self.client.get(f"/issued/{ident}")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn("<title>Paket C IPA", page.text)
+        self.assertIn("PROGRAM PAKET C SETARA SMA", page.text)
+        self.assertIn("Paket C IPA · Kelas X", self.client.get("/?year=2026").text)
+        self.assertEqual(self.client.get(f"/api/issued/{ident}").json["state"], state)
 
 
 if __name__ == "__main__":

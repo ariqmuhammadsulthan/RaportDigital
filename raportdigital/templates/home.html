@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% block content %}
 <p class="eyebrow">Rapor Digital</p><h1>Buku nilai saya</h1>
 <form class="year"><label>Tahun awal pelajaran<input type="number" min="2000" max="2100" name="year" value="{{ year }}" required></label><button>Tampilkan</button></form>
-<h2>Program kesetaraan <small>{{ year }}/{{ year+1 }}</small></h2>
-<div class="grid">{% for code,name in programs.items() %}<a class="book" href="{{ url_for('editor',program=code,year=year) }}"><small>{{ {'a':'Setara SD · Kelas I–VI','b':'Setara SMP · Kelas VII–IX','c-ipa':'Setara SMA · Kelas X–XII','c-ips':'Setara SMA · Kelas X–XII'}[code] }}</small><h3>{{ name }}</h3><span>{{ 'Lanjutkan pengisian' if code in revisions else 'Mulai buku nilai' }} →</span></a>{% endfor %}</div>
-<h2>Arsip terbit</h2>{% for row in issues %}<a class="archive" href="{{ url_for('archive',ident=row.id) }}"><strong>{{ programs[row.program] }} · Kelas {{ row.grade }} · {{ row.semester }}</strong><span>{{ row.issued|jakarta }} · Arsip #{{ row.id }} →</span></a>{% else %}<p class="empty">Belum ada rapor terbit untuk tahun ini. Terbitkan arsip kelas dari halaman Periksa &amp; cetak.</p>{% endfor %}
+<h2>Jenjang &amp; program <small>{{ year }}/{{ year+1 }}</small></h2>
+<div class="grid">{% for code,profile in programs.items() %}<a class="book" href="{{ url_for('editor',program=code,year=year) }}"><small>Kelas {{ classes[code].split()[0] }}–{{ classes[code].split()[-1] }}</small><h3>{{ profile.name }}</h3><span>{{ 'Lanjutkan pengisian' if code in revisions else 'Mulai buku nilai' }} →</span></a>{% endfor %}</div>
+<h2>Arsip terbit</h2>{% for row in issues %}<a class="archive" href="{{ url_for('archive',ident=row.id) }}"><strong>{{ row.name }} · Kelas {{ row.grade }} · {{ row.semester }}</strong><span>{{ row.issued|jakarta }} · Arsip #{{ row.id }} →</span></a>{% else %}<p class="empty">Belum ada rapor terbit untuk tahun ini. Terbitkan arsip kelas dari halaman Periksa &amp; cetak.</p>{% endfor %}
 {% endblock %}

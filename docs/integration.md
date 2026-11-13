@@ -12,7 +12,8 @@ cross-origin cookies/CORS and SSO require a deliberate authentication design.
 | File | Owns |
 |---|---|
 | `raportdigital/web.py` | App factory, accounts, sessions, encrypted records, HTTP routes |
-| `raportdigital/domain.py` | Programs, classes, validation and year-end rules |
+| `raportdigital/domain.py` | Stable program IDs, classes, validation and year-end rules |
+| `raportdigital/programs.py` | School/equivalency presets, custom names and archive labels |
 | `raportdigital/schema.sql` | SQLite tables and issued-record guards |
 | `raportdigital/cli.py` | Setup/check commands and local/proxy launch modes |
 | `raportdigital/static/report.js` | Initial book, input tables, spreadsheet paste and report rendering |
@@ -24,7 +25,57 @@ Change school identity and subjects through **Pengaturan** first. For new-book
 defaults, edit `def`, `mkc` and `mkms` in `report.js`. Changes do not rewrite saved
 books. If changing program/class IDs or saved fields, update both browser defaults
 and server validation, and provide a migration for existing data. Keep the
-`reportVersion` branch when preserving old issued-report rendering.
+`reportVersion` and legacy-profile branches when preserving old issued-report rendering.
+
+## Choose programs
+
+Set these before starting the service, then restart it and reload open book pages:
+
+| Setting | Default | Purpose |
+|---|---|---|
+| `RAPOR_EDUCATION` | `school` | `school` for SD/SMP/SMA; `equivalency` for Paket A/B/C |
+| `RAPOR_PROGRAM_NAMES` | Unset | Path to a UTF-8 JSON file overriding menu and cover names |
+
+For equivalency education, in Windows CMD:
+
+```bat
+set "RAPOR_EDUCATION=equivalency"
+.venv\Scripts\raportdigital serve --local
+```
+
+On macOS/Linux, use `export RAPOR_EDUCATION=equivalency` before starting the service.
+Containers accept the same setting with `-e RAPOR_EDUCATION=equivalency`.
+
+For custom labels, create a file such as `C:\RaporConfig\programs.json`:
+
+```json
+{"a": "MI", "b": "MTs", "c-ipa": "MA IPA", "c-ips": "MA IPS"}
+```
+
+Then set `RAPOR_PROGRAM_NAMES` to that file's path. Omitted names use the preset.
+Names are plain text, up to 120 characters. Only the server operator changes this
+configuration; teachers still edit school identity and subjects in **Pengaturan**.
+An embedded app can use `create_app(education="school", program_names={"a": "MI"})`.
+
+| Stable ID | School | Equivalency | Classes |
+|---|---|---|---|
+| `a` | SD | Paket A | I–VI |
+| `b` | SMP | Paket B | VII–IX |
+| `c-ipa` | SMA IPA | Paket C IPA | X–XII |
+| `c-ips` | SMA IPS | Paket C IPS | X–XII |
+
+Both presets support the same entry, printing, archive and year-end workflows.
+The equivalency preset includes Tingkatan, MIA/IIS class suffixes and empowerment/
+skills examples. The school preset uses general report labels and separate arts
+and physical-education examples. Subjects remain editable; neither preset claims
+to define an official curriculum. Different class ranges or grading systems need
+code changes, not just a new name.
+
+Switching presets changes active book labels, but leaves saved subjects, pupils
+and marks intact. New books receive the selected defaults. Issued archives retain
+their publication labels; older archives retain their original equivalency format.
+Reissuing the same book revision returns the existing archive. Save a revised book
+before publishing a replacement.
 
 ## Run alongside another application
 
@@ -42,9 +93,13 @@ Open `http://127.0.0.1:8765/grades/`. For hosted use, follow the proxy setup in
 strip that prefix from `PATH_INFO`. Links, API URLs, redirects and cookie paths
 follow the mount. The application does not trust forwarded headers by itself.
 
-The editor shell supplies `data-program`, `data-year`, `data-issue`, `data-csrf`,
+The editor shell supplies `data-program`, `data-profile`, `data-year`, `data-issue`, `data-csrf`,
 `data-endpoint` and `data-login` on its body. If replacing the backend, render these
 values safely and retain the DOM IDs used by both scripts.
+`data-profile` is HTML-escaped JSON with `name`, `cover`, `track` and `equivalency`.
+For archives it comes from the encrypted snapshot's `reportProfile`, with a legacy
+equivalency fallback when absent. The server stamps this field when issuing and
+discards browser-supplied `reportProfile` on saves.
 
 ## HTTP contract
 

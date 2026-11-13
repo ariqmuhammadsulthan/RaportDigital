@@ -15,7 +15,8 @@ from flask import Flask, abort, g, redirect, render_template, request, url_for
 from werkzeug.exceptions import HTTPException, InternalServerError, SecurityError, ServiceUnavailable
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .domain import PROGRAMS, validate, prepare_next_year
+from .domain import CLASSES, validate, prepare_next_year
+from .programs import configured_profiles, issued_profile
 
 SCHEMA = Path(__file__).with_name("schema.sql").read_text(encoding="utf-8")
 
@@ -28,8 +29,9 @@ def check_storage(root):
         raise RuntimeError("Kunci penyimpanan tidak valid. Pulihkan kunci asli; jangan membuat kunci pengganti.")
 
 
-def create_app(directory=None, local=False):
+def create_app(directory=None, local=False, *, education=None, program_names=None):
     app = Flask(__name__)
+    programs = configured_profiles(education, program_names)
     root = Path(directory or os.environ.get("RAPOR_DATA_DIR") or Path.home() / ".raportdigital").expanduser().resolve()
     code = Path(__file__).resolve().parent
     checkout = code.parent if (code.parent / "pyproject.toml").is_file() else code
@@ -216,7 +218,7 @@ def create_app(directory=None, local=False):
         return response
 
     def book_key(program, year):
-        if program not in PROGRAMS or not 2000 <= year <= 2100:
+        if program not in CLASSES or not 2000 <= year <= 2100:
             abort(404)
         return (g.user["name"], program, year)
 
@@ -242,13 +244,15 @@ def create_app(directory=None, local=False):
         book_key("a", year)
         owner = g.user["name"]
         revisions = {r["program"]: r["rev"] for r in db().execute("SELECT program,rev FROM books WHERE owner=? AND year=?", (owner,year))}
-        issues = db().execute("SELECT id,program,grade,semester,rev,issued FROM issues WHERE owner=? AND year=? ORDER BY id DESC", (owner,year)).fetchall()
-        return render_template("home.html", programs=PROGRAMS, revisions=revisions, issues=issues, year=year)
+        rows = db().execute("SELECT * FROM issues WHERE owner=? AND year=? ORDER BY id DESC", (owner,year))
+        issues = [{"id": row["id"], "grade": row["grade"], "semester": row["semester"], "issued": row["issued"],
+                   "name": issued_profile(issued_state(row), row["program"])["name"]} for row in rows]
+        return render_template("home.html", programs=programs, classes=CLASSES, revisions=revisions, issues=issues, year=year)
 
     @app.get("/book/<program>/<int:year>")
     def editor(program, year):
         book_key(program, year)
-        return render_template("editor.html", program=program, year=year, title=PROGRAMS[program], issue=0)
+        return render_template("editor.html", program=program, year=year, profile=programs[program], issue=0)
 
     @app.route("/api/book/<program>/<int:year>", methods=["GET", "POST"])
     def book(program, year):
@@ -294,6 +298,7 @@ def create_app(directory=None, local=False):
                     if not student.get("nama","").strip() or any(scores.get(k, "") == "" for k in subjects):
                         abort(422)
                 state["reportVersion"] = 2
+                state["reportProfile"] = programs[program]
                 state["c"] = {grade: group}
                 for student in group["st"]:
                     if semester == "Ganjil":
@@ -320,6 +325,8 @@ def create_app(directory=None, local=False):
             else:
                 abort(400)
             validate(state, program, year)
+            # Presentation is operator-controlled, never supplied by a teacher's browser.
+            state.pop("reportProfile", None)
             if row:
                 db().execute("INSERT INTO drafts VALUES (?,?,?,?,?)", (*key,rev,row["data"]))
                 db().execute("DELETE FROM drafts WHERE owner=? AND program=? AND year=? AND rev<=?", (*key,rev-5))
@@ -333,15 +340,19 @@ def create_app(directory=None, local=False):
             abort(404)
         return row
 
+    def issued_state(row):
+        context = tuple(row[k] for k in ("owner","program","year","rev","grade","semester")) + ("issue",)
+        return crypt(row["data"], context, False)
+
     @app.get("/issued/<int:ident>")
     def archive(ident):
         row = issued_record(ident)
-        return render_template("editor.html", program=row["program"], year=row["year"], title=PROGRAMS[row["program"]], issue=ident)
+        profile = issued_profile(issued_state(row), row["program"])
+        return render_template("editor.html", program=row["program"], year=row["year"], profile=profile, issue=ident)
 
     @app.get("/api/issued/<int:ident>")
     def snapshot(ident):
         row = issued_record(ident)
-        context = tuple(row[k] for k in ("owner","program","year","rev","grade","semester")) + ("issue",)
-        return {"state": crypt(row["data"], context, False), "rev":row["rev"]}
+        return {"state": issued_state(row), "rev":row["rev"]}
 
     return app

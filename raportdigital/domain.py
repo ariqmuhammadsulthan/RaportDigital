@@ -3,7 +3,6 @@ import re
 
 from flask import abort
 
-PROGRAMS = {"a": "Paket A", "b": "Paket B", "c-ipa": "Paket C IPA", "c-ips": "Paket C IPS"}
 CLASSES = {"a": "I II III IV V VI", "b": "VII VIII IX", "c-ipa": "X XI XII", "c-ips": "X XI XII"}
 SEMESTERS = ("Ganjil", "Genap")
 

@@ -2,6 +2,10 @@
 
 [← README](../README.md)
 
+Aplikasi ini bisa digunakan oleh sekolah maupun penyelenggara pendidikan
+kesetaraan. Nama jenjang dan program mengikuti pengaturan pengelola, misalnya
+SD/SMP/SMA atau Paket A/B/C. Cara mengisi dan mencetak rapor tetap sama.
+
 ## Isi dan cetak
 
 1. Masuk dengan akun yang dibuat pengelola. Pilih tahun awal pelajaran (misalnya
@@ -30,6 +34,10 @@ dan bagian rapor hanya mengatur cetakan. Draf diberi tanda **Belum diterbitkan**
 arsip diberi nomor. Koreksi dilakukan di buku nilai, lalu diterbitkan sebagai arsip
 baru. Bandingkan PDF atau kertas dengan arsip dalam aplikasi; nomor arsip bukan
 tanda tangan digital.
+
+Jika pengelola mengganti nama program, buku nilai mengikuti nama yang baru.
+Data siswa dan nilai tetap tersimpan. Arsip terbit tetap memakai nama saat
+diterbitkan.
 
 ## Riwayat dan tahun berikutnya
 

@@ -6,6 +6,12 @@ const { once } = require("node:events");
 const { createInterface } = require("node:readline");
 const playwright = require(process.env.RAPOR_PLAYWRIGHT || "playwright");
 const repo = path.resolve(__dirname, "..");
+const equivalency = process.env.RAPOR_EDUCATION === "equivalency";
+const names = process.env.RAPOR_PROGRAM_NAMES
+  ? JSON.parse(fs.readFileSync(process.env.RAPOR_PROGRAM_NAMES, "utf8")) : {};
+const labels = equivalency
+  ? { a: "Paket A", b: "Paket B", "c-ipa": "Paket C IPA", "c-ips": "Paket C IPS" }
+  : { a: "SD", b: "SMP", "c-ipa": "SMA IPA", "c-ips": "SMA IPS" };
 
 (async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "raportdigital-test-"));
@@ -43,6 +49,18 @@ const repo = path.resolve(__dirname, "..");
       await page.waitForSelector('[data-w="wali"]');
       assert.equal(await page.locator('[data-p="nama"]').inputValue(), "");
       assert.equal(await page.evaluate(() => document.body.dataset.endpoint.startsWith("/grades/api/")), true);
+      assert.equal(await page.locator("h1").innerText(), `${names[program] || labels[program]} · Buku nilai`);
+      assert.doesNotMatch(await page.locator("#t1").innerText(), /PKBM/);
+      const preview = await page.evaluate(() => {
+        const doc = new DOMParser().parseFromString(cov({ nama: "Siswa Uji" }, 0) + rap({ nama: "Siswa Uji" }), "text/html");
+        return { cover: doc.querySelector(".ttl").textContent, text: doc.body.textContent,
+          injected: !!doc.querySelector("img[src=x]"), subjects: allM().map(r => r.n) };
+      });
+      assert.equal(preview.injected, false);
+      if (names[program] || !equivalency) assert.ok(preview.cover.includes((names[program] || labels[program]).toUpperCase()));
+      else assert.match(preview.cover, /PROGRAM PAKET [ABC] SETARA (SD|SMP|SMA)/);
+      assert.equal(preview.text.includes("Tingkatan"), equivalency);
+      assert.equal(preview.subjects.some(n => n.includes("Pemberdayaan")), equivalency);
     }
     await page.locator('[data-p="nama"]').fill("Sekolah Contoh");
     await page.locator('[data-w="wali"]').fill("Guru Uji");
@@ -71,6 +89,8 @@ const repo = path.resolve(__dirname, "..");
     await page.click("#issue");
     await issued;
     await page.waitForSelector("#sheet .pg");
+    assert.equal(await page.evaluate(() => S.reportProfile.name), names["c-ipa"] || labels["c-ipa"]);
+    assert.equal((await page.locator("#sheet").innerText()).includes("Tingkatan"), equivalency);
     assert.equal(await page.locator("#issue").isVisible(), false);
     assert.match(await page.locator(".pg").first().getAttribute("data-stamp"), /Arsip #/);
     await page.emulateMedia({ media: "print" });
@@ -79,7 +99,7 @@ const repo = path.resolve(__dirname, "..");
     await page.locator("#leave button").click();
     await page.waitForURL(origin + "/login");
     assert.deepEqual(errors, []);
-    console.log(`${kind}: mounted login, all programs, blank defaults, autosave/reload, Excel paste/zero, mobile preview, issue, print media and logout passed.`);
+    console.log(`${kind} (${equivalency ? "equivalency" : "school"}): program labels/covers/defaults, mounted login, autosave/reload, Excel paste/zero, mobile preview, issue, print media and logout passed.`);
   } finally {
     if (browser) await browser.close();
     if (child.exitCode === null) child.kill();

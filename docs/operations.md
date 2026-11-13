@@ -90,6 +90,11 @@ as part of an upgrade.
 
 ## Test and update
 
+**Upgrading an equivalency instance:** set `RAPOR_EDUCATION=equivalency` before
+starting the updated service. The default is now SD/SMP/SMA. See
+[program setup](integration.md#choose-programs) for custom names. Keep these
+settings (and any custom-name file) with your service configuration and backups.
+
 From the repository root after installation:
 
 ```bat
@@ -104,7 +109,8 @@ wheel building on Windows/Linux. Optional real-browser checks are described in
 Existing users can keep `RAPOR_DATA_DIR`, run the updated install command, then
 `init` and `check`. `python app.py` still starts the local server; existing
 `python -m flask --app app init` and `teacher` commands still work. Stored books,
-accounts, revisions and archives retain their formats. New installs can use the
+accounts and revisions remain compatible; new archives also store their report
+labels, while old archives keep their equivalency labels. New installs can use the
 wheel without the source checkout; it includes templates, assets and schema.
 
 Maintain your own dependency updates, backups and access controls. This is a

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.0 — School and equivalency presets · 2026-11-13
+
+- SD/SMP/SMA defaults, an equally supported Paket A/B/C preset, and custom program
+  names through configuration. Storage IDs and class progression stay unchanged.
+- General institution labels throughout the editor and school reports; equivalency
+  levels, class suffixes and subject examples follow the selected preset.
+- Existing books keep their subjects and marks. Issued archives retain their
+  publication labels, including the equivalency format for older archives.
+
+Existing equivalency installations should set `RAPOR_EDUCATION=equivalency` before
+upgrading. See [program setup](docs/integration.md#choose-programs).
+
+Checks: 15 backend tests, both presets in Firefox/Chrome, custom-name escaping in
+Firefox, wheel packaging and a clean secret scan.
+
 ## 1.0.0 — Standalone template · 2026-11-13
 
 - Installable Python package with included assets, templates and SQL schema;

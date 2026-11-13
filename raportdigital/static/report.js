@@ -3,7 +3,10 @@ const program = document.body.dataset.program;
 const year = Number(document.body.dataset.year);
 const senior = program.startsWith("c-");
 const A = program === "c-ipa";
-const track = senior ? (A ? " MIA" : " IIS") : "";
+const profile = JSON.parse(document.body.dataset.profile);
+const track = profile.track;
+const institution = profile.legacy ? "PKBM" : "satuan pendidikan";
+const headLabel = profile.legacy ? "Kepala Sekolah" : "Kepala satuan pendidikan";
 const KL =
   program === "a"
     ? ["I", "II", "III", "IV", "V", "VI"]
@@ -48,11 +51,11 @@ const PM = {
   IPA: ["Matematika Peminatan", "Fisika", "Kimia", "Biologi"],
   IPS: ["Geografi", "Sejarah", "Sosiologi", "Ekonomi"],
 };
-const K = [
+const K = profile.equivalency ? [
   "Public Speaking (Pemberdayaan)",
   "Keterampilan Wajib (SBK, PJOK, Prakarya & Kewirausahaan)",
   "Teknologi Informasi dan Komunikasi",
-];
+] : ["Seni Budaya", "Pendidikan Jasmani, Olahraga, dan Kesehatan"];
 const grp = (a, kk) => [
   ...a.map((n) => mk(n, 0, kk)),
   mk("", 1, kk),
@@ -115,7 +118,7 @@ const D = () => S.c[S.sch.kelas],
   M = () => D().ms[S.sch.sem];
 const opt = (v, c) => `<option${v == c ? " selected" : ""}>${v}</option>`;
 const F = [
-  ["nama", "Nama PKBM"],
+  ["nama", "Nama satuan pendidikan"],
   ["npsn", "NPSN"],
   ["a1", "Alamat baris 1"],
   ["a2", "Alamat baris 2"],
@@ -125,14 +128,14 @@ const F = [
   ["web", "Website"],
   ["email", "Email"],
   ["tel", "Telepon"],
-  ["kepala", "Kepala sekolah"],
-  ["nipk", "NIP kepala sekolah"],
+  ["kepala", "Kepala satuan pendidikan"],
+  ["nipk", "NIP kepala satuan pendidikan"],
   ["tempat", "Kota tempat tanda tangan"],
 ];
 const G = [
   ["u", "Kelompok Mata Pelajaran Umum"],
   ["p", "Peminatan " + (A ? "Ilmu-Ilmu Alam" : "Ilmu-Ilmu Sosial")],
-  ["k", "Kelompok Khusus"],
+  ["k", profile.equivalency ? "Kelompok Khusus" : "Mata Pelajaran Lainnya"],
 ];
 if (!senior) G.splice(1, 1);
 const allM = () => [...M().u, ...M().p, ...M().k].filter((r) => r.n);
@@ -144,9 +147,9 @@ function setup() {
   const I = (a, k, l, v, t) =>
     `<label>${l}<input ${t ? `type="${t}" ` : ""}data-${a}="${k}" value="${esc(v)}"></label>`;
   let h =
-    `<h3>Data PKBM (sama untuk semua kelas)</h3><div class="g">` +
+    `<h3>Data satuan pendidikan (sama untuk semua kelas)</h3><div class="g">` +
     F.map(([k, l]) => I("p", k, l, c[k])).join("") +
-    `<label>Logo PKBM (PNG atau JPG)<input type="file" accept="image/png,image/jpeg" data-action="logo"></label></div>` +
+    `<label>Logo satuan pendidikan (PNG atau JPG)<input type="file" accept="image/png,image/jpeg" data-action="logo"></label></div>` +
     (S.logo
       ? `<div class="row"><img src="${esc(S.logo)}" style="height:60px;background:#fff;border-radius:6px"><button data-action="remove-logo">Hapus logo</button></div>`
       : "");
@@ -450,7 +453,7 @@ const v = (x) => esc(x || "-");
 const legacyPrint = () => Number(document.body.dataset.issue) > 0 && S.reportVersion !== 2;
 const cov = (s, i) => {
   const c = S.sch;
-  return `<div class="pg cv"><div class="nr"><table><tr><th class="y">No Rapor</th><th>Nomor Pokok Sekolah Nasional</th></tr><tr><td>${v(s.norap || (legacyPrint() ? i + 1 : ""))}</td><td>${v(c.npsn)}</td></tr></table></div>${S.logo ? `<img class="lg" src="${esc(S.logo)}">` : '<div class="lg0">Logo PKBM<br>(unggah di tab Pengaturan)</div>'}<div class="ttl">LAPORAN HASIL BELAJAR PESERTA DIDIK<br>PROGRAM ${program === "a" ? "PAKET A SETARA SD" : program === "b" ? "PAKET B SETARA SMP" : "PAKET C SETARA SMA"}</div><div class="lb">NAMA PESERTA DIDIK</div><div class="pc nm">${esc(s.nama)}</div><div class="lb" style="margin-top:3mm">NIPD / NISN</div><div class="pc ni">${v(s.nipd)} / ${v(s.nisn)}</div><div class="sc"><div class="sn">${esc(c.nama)}</div><div class="dl">NPSN ${esc(c.npsn)}</div><div class="dl">${esc(c.a1.toUpperCase())}</div><div class="dl">${esc(c.a2.toUpperCase())}</div><div class="dl">${esc(c.a3.toUpperCase())}</div></div></div>`;
+  return `<div class="pg cv"><div class="nr"><table><tr><th class="y">No Rapor</th><th>Nomor Pokok Sekolah Nasional</th></tr><tr><td>${v(s.norap || (legacyPrint() ? i + 1 : ""))}</td><td>${v(c.npsn)}</td></tr></table></div>${S.logo ? `<img class="lg" src="${esc(S.logo)}">` : `<div class="lg0">Logo ${institution}<br>(unggah di tab Pengaturan)</div>`}<div class="ttl">LAPORAN HASIL BELAJAR PESERTA DIDIK<br>${esc(profile.cover.toUpperCase())}</div><div class="lb">NAMA PESERTA DIDIK</div><div class="pc nm">${esc(s.nama)}</div><div class="lb" style="margin-top:3mm">NIPD / NISN</div><div class="pc ni">${v(s.nipd)} / ${v(s.nisn)}</div><div class="sc"><div class="sn">${esc(c.nama)}</div><div class="dl">NPSN ${esc(c.npsn)}</div><div class="dl">${esc(c.a1.toUpperCase())}</div><div class="dl">${esc(c.a2.toUpperCase())}</div><div class="dl">${esc(c.a3.toUpperCase())}</div></div></div>`;
 };
 const sek = () => {
   const c = S.sch,
@@ -463,7 +466,7 @@ const sek = () => {
       ["email", esc(c.email)],
       ["Telepon", esc(c.tel)],
     ];
-  return `<div class="pg id">${wm()}<div class="yb"></div><div><h3 class="ctr">IDENTITAS SEKOLAH</h3><table class="kd">${r.map(([k, x]) => `<tr><td>${k}</td><td>:</td><td>${x}</td></tr>`).join("")}</table></div><div class="yb"></div></div>`;
+  return `<div class="pg id">${wm()}<div class="yb"></div><div><h3 class="ctr">${profile.legacy ? "IDENTITAS SEKOLAH" : "IDENTITAS SATUAN PENDIDIKAN"}</h3><table class="kd">${r.map(([k, x]) => `<tr><td>${k}</td><td>:</td><td>${x}</td></tr>`).join("")}</table></div><div class="yb"></div></div>`;
 };
 const ktr = (s) => {
   const c = S.sch,
@@ -480,7 +483,7 @@ const ktr = (s) => {
     ["Anak Ke", v(s.anak)],
     ["Alamat Peserta Didik", v(s.alamat)],
     ["Telepon", v(s.tel)],
-    ["Diterima di sekolah ini", null],
+    [profile.legacy ? "Diterima di sekolah ini" : "Diterima di satuan pendidikan ini", null],
     ["di Kelas", v(s.dk)],
     ["pada tanggal", v(s.dtg)],
     ["sebagai", "Peserta Didik"],
@@ -493,7 +496,7 @@ const ktr = (s) => {
     ["Nama Wali Peserta Didik", v(s.wali)],
     ["Pekerjaan Wali Peserta Didik", v(s.kwali)],
   ];
-  return `<div class="pg ks">${wm()}<h2 class="kt">KETERANGAN DIRI TENTANG PESERTA DIDIK</h2><table class="k2">${r.map(([k, x]) => (x === null ? `<tr><td colspan="3">${k}</td></tr>` : `<tr><td>${k}</td><td>:</td><td>${x}</td></tr>`)).join("")}</table><div class="sg2"><div class="foto">PAS<br>3X4</div><div>${esc(c.tempat)}, ${esc(g)}<br>Kepala Sekolah,<br><br><br><br><br>${esc(c.kepala)}<br>NIP: ${esc(c.nipk || "-")}</div></div></div>`;
+  return `<div class="pg ks">${wm()}<h2 class="kt">KETERANGAN DIRI TENTANG PESERTA DIDIK</h2><table class="k2">${r.map(([k, x]) => (x === null ? `<tr><td colspan="3">${k}</td></tr>` : `<tr><td>${k}</td><td>:</td><td>${x}</td></tr>`)).join("")}</table><div class="sg2"><div class="foto">PAS<br>3X4</div><div>${esc(c.tempat)}, ${esc(g)}<br>${headLabel},<br><br><br><br><br>${esc(c.kepala)}<br>NIP: ${esc(c.nipk || "-")}</div></div></div>`;
 };
 const CG =
   '<colgroup><col style="width:9mm"><col style="width:50mm"><col style="width:13mm"><col style="width:16mm"><col></colgroup>';
@@ -547,8 +550,8 @@ const rap = (s) => {
       : ["I", "II", "III"].includes(c.kelas)
         ? 1
         : 2;
-  return `<div class="pg">${wm()}<table class="hd"><tr><td style="width:40mm">Nama Satuan Pendidikan</td><td style="width:3mm">:</td><td>${esc(c.nama)}</td><td style="width:30mm">Kelas</td><td style="width:3mm">:</td><td style="width:30mm">${kl}</td></tr><tr><td>Alamat</td><td>:</td><td>${esc(c.a1)}</td><td>Semester</td><td>:</td><td>${esc(c.sem)}</td></tr><tr><td></td><td></td><td>${esc(c.ar)}</td><td>Tingkatan</td><td>:</td><td>${tg}</td></tr><tr><td></td><td></td><td></td><td>Tahun Pelajaran</td><td>:</td><td>${esc(d.tahun)}</td></tr></table><table class="hd"><tr><td style="width:40mm">Nama Peserta Didik</td><td style="width:3mm">:</td><td>${esc(s.nama)}</td></tr><tr><td>Nomor Induk/NISN</td><td>:</td><td>${v(s.nipd)} &nbsp;/&nbsp; ${v(s.nisn)}</td></tr></table><div class="sec">A. Lembar Isi Mata Pelajaran</div><table class="t">${CG}<thead><tr><th>No</th><th>Mata Pelajaran/Muatan Pemberdayaan dan Keterampilan</th><th>KKM</th><th>Nilai Akhir</th><th>Capaian Kompetensi</th></tr></thead>${gp("Kelompok Mata Pelajaran Umum", u)}${gp("Peminatan Ilmu-Ilmu " + (A ? "Alam" : "Sosial"), p)}</table></div>
-<div class="pg">${wm()}${k.length ? `<table class="t">${CG}${gp("Kelompok Khusus", k)}</table>` : ""}${eh}<div class="sec">Catatan Wali Kelas</div><div class="cat">${esc(z.catatan || "")}</div>${ab}${nk}<div class="sg"><div><br>Orang Tua/Wali<br><span class="dot"></span></div><div>${esc(c.tempat)}, ${esc(m.tgl)}<br>Wali Kelas<br><br><br><br><u>${esc(d.wali)}</u><br>NIP : ${esc(d.nip || "-")}</div></div></div>`;
+  return `<div class="pg">${wm()}<table class="hd"><tr><td style="width:40mm">Nama Satuan Pendidikan</td><td style="width:3mm">:</td><td>${esc(c.nama)}</td><td style="width:30mm">Kelas</td><td style="width:3mm">:</td><td style="width:30mm">${esc(kl)}</td></tr><tr><td>Alamat</td><td>:</td><td>${esc(c.a1)}</td><td>Semester</td><td>:</td><td>${esc(c.sem)}</td></tr><tr><td></td><td></td><td>${esc(c.ar)}</td>${profile.equivalency ? `<td>Tingkatan</td><td>:</td><td>${tg}</td>` : '<td colspan="3"></td>'}</tr><tr><td></td><td></td><td></td><td>Tahun Pelajaran</td><td>:</td><td>${esc(d.tahun)}</td></tr></table><table class="hd"><tr><td style="width:40mm">Nama Peserta Didik</td><td style="width:3mm">:</td><td>${esc(s.nama)}</td></tr><tr><td>Nomor Induk/NISN</td><td>:</td><td>${v(s.nipd)} &nbsp;/&nbsp; ${v(s.nisn)}</td></tr></table><div class="sec">A. Lembar Isi Mata Pelajaran</div><table class="t">${CG}<thead><tr><th>No</th><th>${profile.equivalency ? "Mata Pelajaran/Muatan Pemberdayaan dan Keterampilan" : "Mata Pelajaran"}</th><th>KKM</th><th>Nilai Akhir</th><th>Capaian Kompetensi</th></tr></thead>${gp("Kelompok Mata Pelajaran Umum", u)}${gp("Peminatan Ilmu-Ilmu " + (A ? "Alam" : "Sosial"), p)}</table></div>
+<div class="pg">${wm()}${k.length ? `<table class="t">${CG}${gp(profile.equivalency ? "Kelompok Khusus" : "Mata Pelajaran Lainnya", k)}</table>` : ""}${eh}<div class="sec">Catatan Wali Kelas</div><div class="cat">${esc(z.catatan || "")}</div>${ab}${nk}<div class="sg"><div><br>Orang Tua/Wali<br><span class="dot"></span></div><div>${esc(c.tempat)}, ${esc(m.tgl)}<br>Wali Kelas<br><br><br><br><u>${esc(d.wali)}</u><br>NIP : ${esc(d.nip || "-")}</div></div></div>`;
 };
 function fillWho() {
   const w = $("who"),

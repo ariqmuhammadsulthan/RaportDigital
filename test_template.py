@@ -1,5 +1,6 @@
 """Installation, CLI and mounting contracts for template adopters."""
 import os
+import json
 import sqlite3
 import tempfile
 import unittest
@@ -11,6 +12,7 @@ from click.testing import CliRunner
 
 from raportdigital import create_app
 from raportdigital.cli import cli
+from raportdigital.programs import configured_profiles
 
 
 class TemplateTests(unittest.TestCase):
@@ -18,7 +20,8 @@ class TemplateTests(unittest.TestCase):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name) / "data"
-        env = patch.dict(os.environ, {"RAPOR_DATA_DIR": str(self.root), "RAPOR_TRUSTED_HOSTS": ""})
+        env = patch.dict(os.environ, {"RAPOR_DATA_DIR": str(self.root), "RAPOR_TRUSTED_HOSTS": "",
+                                    "RAPOR_EDUCATION": "school", "RAPOR_PROGRAM_NAMES": ""})
         env.start()
         self.addCleanup(env.stop)
         self.runner = CliRunner()
@@ -119,6 +122,33 @@ class TemplateTests(unittest.TestCase):
         client = create_app(local=True).test_client()
         self.assertEqual(client.get("/api/book/a/2026").status_code, 503)
         self.assertFalse(self.root.exists())
+
+    def test_program_configuration_and_html_escaping(self):
+        self.init()
+        self.account()
+        custom = 'MI "Contoh" <img src=x onerror=alert(1)> & Kawan'
+        path = self.root / "programs.json"
+        path.write_text(json.dumps({"a": custom}), encoding="utf-8")
+        with patch.dict(os.environ, {"RAPOR_PROGRAM_NAMES": str(path)}):
+            config = configured_profiles()
+            self.assertEqual(config["a"]["name"], custom)
+            self.assertEqual(config["b"]["name"], "SMP")
+            client = create_app(local=True).test_client()
+        client.post("/login", data={"name": "teacher", "password": "long-test-passphrase"},
+                    headers={"Origin": "http://localhost"})
+        for route in ("/", "/book/a/2026"):
+            page = client.get(route)
+            self.assertEqual(page.status_code, 200)
+            self.assertNotIn("<img src=x", page.text)
+            self.assertIn("&lt;img", page.text)
+        for names in ([], {"unknown": "School"}, {"a": " "}, {"a": 4}, {"a": "x" * 121}):
+            with self.subTest(names=names), self.assertRaises(ValueError):
+                create_app(local=True, program_names=names)
+        with self.assertRaises(ValueError):
+            create_app(local=True, education="unknown")
+        path.write_text("null", encoding="utf-8")
+        with patch.dict(os.environ, {"RAPOR_PROGRAM_NAMES": str(path)}), self.assertRaises(ValueError):
+            create_app(local=True)
 
 
 if __name__ == "__main__":
